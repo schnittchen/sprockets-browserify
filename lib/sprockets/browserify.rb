@@ -3,7 +3,13 @@ require 'tilt'
 require 'pathname'
 
 module Sprockets
-  Config = Struct.new(:scope_matcher)
+  class Config
+    attr_accessor :scope_matcher
+
+    def initialize
+      self.scope_matcher = ->(scope) { (scope.pathname.dirname+'package.json').exist? }
+    end
+  end
 
   # Postprocessor that runs the computed source of Javascript files
   # through browserify, resulting in a self-contained files including all
@@ -74,8 +80,15 @@ module Sprockets
     end
 
     def config
-      # kinda not clean...
-      ::Rails.application.config.sprockets_browserify
+      self.class.config
+    end
+
+    def self.config
+      @config ||= Config.new
+    end
+
+    def self.configure
+      yield config
     end
   end
 end
