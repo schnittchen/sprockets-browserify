@@ -4,7 +4,7 @@ require 'pathname'
 
 module Sprockets
   class Config
-    attr_accessor :scope_matcher
+    attr_accessor :scope_matcher, :enable_source_maps
 
     def initialize
       self.scope_matcher = ->(scope) { (scope.pathname.dirname+'package.json').exist? }
@@ -43,6 +43,10 @@ module Sprockets
       config.scope_matcher.call(scope)
     end
 
+    def source_maps?
+      config.enable_source_maps
+    end
+
     def browserify_list_cmd(file)
       [
         file,
@@ -54,8 +58,8 @@ module Sprockets
       [
         file,
         '-t', 'coffeeify', '--extension=.coffee',
-        '--debug' # @TODO make this configurable
-      ]
+        source_maps? ? '--debug' : nil
+      ].compact
     end
 
     def browserify_output(*args)
