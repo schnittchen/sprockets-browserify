@@ -3,6 +3,8 @@ require 'tilt'
 require 'pathname'
 
 module Sprockets
+  Config = Struct.new()
+
   # Postprocessor that runs the computed source of Javascript files
   # through browserify, resulting in a self-contained files including all
   # referenced modules
@@ -71,5 +73,9 @@ module Sprockets
       @browserify_executable ||= gem_dir + 'node_modules/browserify/bin/cmd.js'
     end
 
+    def config
+      # kinda not clean...
+      ::Rails.application.config.sprockets_browserify
+    end
   end
 end
