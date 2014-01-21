@@ -10,7 +10,10 @@ if defined?(Rails)
         end
 
         initializer "sprockets-browserify.init_config" do |app|
-          app.config.sprockets_browserify = Config.new
+          config = app.config.sprockets_browserify = Config.new
+
+          # this is ugly and should be replaced with a better mechanism.
+          config.scope_matcher = ->(scope) { (scope.pathname.dirname+'package.json').exist? }
         end
       end
 

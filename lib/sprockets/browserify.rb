@@ -3,7 +3,7 @@ require 'tilt'
 require 'pathname'
 
 module Sprockets
-  Config = Struct.new()
+  Config = Struct.new(:scope_matcher)
 
   # Postprocessor that runs the computed source of Javascript files
   # through browserify, resulting in a self-contained files including all
@@ -34,7 +34,7 @@ module Sprockets
   protected
 
     def process_asset?(scope)
-      (scope.pathname.dirname+'package.json').exist?
+      config.scope_matcher.call(scope)
     end
 
     def browserify_list_cmd(file)
