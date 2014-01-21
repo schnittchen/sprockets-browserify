@@ -12,7 +12,7 @@ module Sprockets
     end
 
     def evaluate(scope, locals, &block)
-      if (scope.pathname.dirname+'package.json').exist?
+      if process_asset?(scope)
         deps = browserify_output(*browserify_list_cmd(scope.pathname.to_s)) do |exit|
           raise "Error finding dependencies"
         end
@@ -30,6 +30,10 @@ module Sprockets
     end
 
   protected
+
+    def process_asset?(scope)
+      (scope.pathname.dirname+'package.json').exist?
+    end
 
     def browserify_list_cmd(file)
       [
