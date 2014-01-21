@@ -1,7 +1,6 @@
 require 'sprockets'
 require 'tilt'
 require 'pathname'
-require 'shellwords'
 
 module Sprockets
   # Postprocessor that runs the computed source of Javascript files
@@ -14,13 +13,16 @@ module Sprockets
 
     def evaluate(scope, locals, &block)
       if (scope.pathname.dirname+'package.json').exist?
-        deps = `#{browserify_executable} --list #{scope.pathname}`
-        raise "Error finding dependencies" unless $?.success?
+        deps = browserify_output(*browserify_list_cmd(scope.pathname.to_s)) do |exit|
+          raise "Error finding dependencies"
+        end
 
         deps.lines.drop(1).each{|path| scope.depend_on path.strip}
 
-        @output ||= `#{browserify_executable} -d #{scope.pathname}`
-        raise "Error compiling dependencies" unless $?.success?
+        @output ||= browserify_output(*browserify_process_command(scope.pathname.to_s)) do |exit|
+          raise "Error compiling dependencies"
+        end
+
         @output
       else
         data
@@ -28,6 +30,34 @@ module Sprockets
     end
 
   protected
+
+    def browserify_list_cmd(file)
+      [
+        file,
+        '--list', '-t', 'coffeeify', '--extension=.coffee'
+      ]
+    end
+
+    def browserify_process_command(file)
+      [
+        file,
+        '-t', 'coffeeify', '--extension=.coffee',
+        '--debug' # @TODO make this configurable
+      ]
+    end
+
+    def browserify_output(*args)
+      r, w = IO.pipe
+      pid = spawn(browserify_executable.to_s, *args, out: w, chdir: gem_dir)
+      w.close
+      result = r.read
+      r.close
+      Process.wait(pid)
+      exit_status = $?
+
+      yield(exit_status) unless exit_status.success?
+      result
+    end
 
     def gem_dir
       @gem_dir ||= Pathname.new(__FILE__).dirname + '../..'
