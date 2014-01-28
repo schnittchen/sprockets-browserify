@@ -4,10 +4,11 @@ require 'pathname'
 
 module Sprockets
   class Config
-    attr_accessor :scope_matcher, :enable_source_maps
+    attr_accessor :scope_matcher, :enable_source_maps, :pre_hook
 
     def initialize
       self.scope_matcher = ->(scope) { (scope.pathname.dirname+'package.json').exist? }
+      self.pre_hook = ->(scope) {}
     end
   end
 
@@ -21,6 +22,8 @@ module Sprockets
 
     def evaluate(scope, locals, &block)
       if process_asset?(scope)
+        call_pre_hook(scope)
+
         deps = browserify_output(*browserify_list_cmd(scope.pathname.to_s)) do |exit|
           raise "Error finding dependencies"
         end
@@ -38,6 +41,10 @@ module Sprockets
     end
 
   protected
+
+    def call_pre_hook(scope)
+      config.pre_hook.call(scope)
+    end
 
     def process_asset?(scope)
       config.scope_matcher.call(scope)
