@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.description = "Browserify packages node modules for the browser. This gem makes it easy to integrate this into the Rails asset pipeline or other Sprockets chains."
   s.license     = "MIT"
 
-  s.files = Dir["{lib,node_modules}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rdoc", "package.json"]
+  s.files = Dir["{lib,node_modules}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rdoc"]
   #s.test_files = Dir["test/**/*"]
 
   s.add_runtime_dependency "sprockets",     "~> 2.1"
